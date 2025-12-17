@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tata Surya Interaktif | Alita</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Playfair+Display:ital@1&display=swap');
+
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #fff; scroll-behavior: smooth; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        
+        header { position: fixed; top: 0; width: 100%; z-index: 1000; text-align: center; padding: 30px 0; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
+        nav a { color: #a0a0ff; text-decoration: none; margin: 0 20px; font-family: 'Orbitron', sans-serif; font-weight: bold; letter-spacing: 2px; transition: 0.3s; }
+        nav a:hover { color: #fff; text-shadow: 0 0 10px #7b68ee; }
+
+        section { width: 100vw; min-height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+        #home { background: url('Untitled design (1).png') no-repeat center center/cover; }
+        .home-title { font-family: 'Orbitron', sans-serif; font-size: 8rem; opacity: 0.7; margin: 0; animation: pulse 3s infinite alternate; text-align: center; line-height: 0.8;}
+        .home-subtitle { font-family: 'Playfair Display', serif; font-size: 4rem; font-style: italic; margin-top: -10px; text-align: center;}
+        @keyframes pulse { from { transform: scale(0.98); opacity: 0.5; } to { transform: scale(1.02); opacity: 0.8; } }
+
+        #project { background: #000; padding: 0; height: 100vh; }
+        #galaxy-scene { width: 100%; height: 100%; outline: none; }
+
+        #planet-info {
+            position: absolute; top: 50%; right: 5%; transform: translateY(-50%);
+            background: rgba(10, 10, 30, 0.95); padding: 25px; border-radius: 15px;
+            max-width: 350px; border: 1px solid #7b68ee; opacity: 0; pointer-events: none; transition: 0.5s;
+            z-index: 100; backdrop-filter: blur(10px);
+        }
+        #planet-info.visible { opacity: 1; pointer-events: all; }
+        #planet-info h2 { color: #ffcc00; margin-top: 0; border-bottom: 2px solid #ffcc00; padding-bottom: 10px; font-family: 'Orbitron', sans-serif; }
+        #planet-info ul { list-style: none; padding: 0; font-size: 0.9em; line-height: 1.8; }
+        #planet-info ul li { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 5px 0; }
+        #planet-info button { background: #7b68ee; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px; width: 100%; font-weight: bold; }
+
+        .bg-overlay { 
+            background: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), url('Untitled design (1).png'); 
+            background-size: cover; background-attachment: fixed; padding: 100px 0; 
+        }
+        .container { max-width: 1000px; background: rgba(255,255,255,0.03); padding: 50px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
+        .section-tag { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 5px; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; display: inline-block; margin-bottom: 20px; border-left: 4px solid #7b68ee; }
+        .content-text { line-height: 1.8; color: #ddd; font-size: 1.05rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="#home">HOME</a>
+            <a href="#project">PROJECT</a>
+            <a href="#about">ABOUT ME</a>
+            <a href="#contact">CONTACT</a>
+        </nav>
+    </header>
+
+    <section id="home">
+        <div>
+            <h1 class="home-title">TATA<br>SURYA</h1>
+            <div class="home-subtitle">Interaktif</div>
+        </div>
+    </section>
+
+    <section id="project">
+        <canvas id="galaxy-scene"></canvas>
+        <div id="planet-info">
+            <h2 id="info-title"></h2>
+            <p id="info-description"></p>
+            <ul id="planet-details">
+                <li><strong>Massa Relatif:</strong> <span id="info-mass"></span></li>
+                <li><strong>Diameter:</strong> <span id="info-diameter"></span> km</li>
+                <li><strong>Suhu Rata-rata:</strong> <span id="info-temp"></span> °C</li>
+                <li><strong>Periode Orbit:</strong> <span id="info-orbit"></span> hari Bumi</li>
+                <li><strong>Periode Rotasi:</strong> <span id="info-rotation"></span> jam Bumi</li>
+            </ul>
+            <ul id="asteroid-details" style="display:none;">
+                <li><strong>Lokasi:</strong> <span id="info-location"></span></li>
+                <li><strong>Lebar Sabuk:</strong> <span id="info-width"></span> AU</li>
+                <li><strong>Asal Utama:</strong> <span id="info-origin"></span></li>
+            </ul>
+            <button onclick="hidePlanetInfo()">Tutup Informasi</button>
+        </div>
+    </section>
+
+    <section id="about" class="bg-overlay">
+         <div class="container">
+            <div class="section-tag">Final Project: Tata Surya Interaktif</div>
+            <p class="content-text">Haloo! Saya Alita. Website ini adalah puncak dari perjalanan belajar saya dalam program <strong>Final Project AI dan Programming SMA-Gap Year Brain Academy Online by Ruangguru</strong>.</p>
+            <p class="content-text">Website ini adalah presentasi akhir saya. Tujuan utamanya adalah menciptakan simulasi Tata Surya yang realistis dan interaktif, dengan menggabungkan ilmu astronomi dan keterampilan Web Programming.</p>
+            
+            <div class="section-tag" style="margin-top:40px;">Detail Pengembangan Teknis</div>
+            <p class="content-text">Proyek ini sepenuhnya dikembangkan menggunakan web standards dan library yang teruji:</p>
+            <ul class="content-text tech-list">
+                <li><strong>HTML5:</strong> Saya menggunakan HTML untuk menyusun kerangka konten utama website.</li>
+                <li><strong>Three.js (JavaScript Library):</strong> Ini adalah inti dari simulasi 3D. Saya menggunakan Three.js untuk merender grafis planet, mengatur tekstur, dan membuat efek cahaya Matahari.</li>
+                <li><strong>Logika Program:</strong> Saya menulis kode JavaScript untuk mengontrol berbagai fungsi penting:
+                    <ul class="sub-list">
+                        <li><strong>Pergerakan Planet:</strong> Mengatur kecepatan rotasi dan orbit planet agar mendekati data nyata.</li>
+                        <li><strong>Interaktivitas (Raycasting):</strong> Logika yang memungkinkan pengguna mengklik planet, dan kode akan merespons dengan memunculkan detail informasinya.</li>
+                        <li><strong>Planet, Matahari, Orbit, & Sabuk Asteroid:</strong> Membuat objek 3D kompleks ini menggunakan geometri dan material khusus Three.js.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="contact" class="bg-overlay">
+        <div class="container" style="text-align: center;">
+            <div class="section-tag">Evaluasi Proyek & Kontak</div>
+            <p class="content-text" style="max-width: 800px; margin: 0 auto 30px;">
+                Saya sangat menghargai waktu yang telah Anda luangkan untuk meninjau proyek Tata Surya Interaktif Realistis ini. Sebagai bagian dari Final Project AI dan Programming Brain Academy Online, masukan teknis dan evaluasi sangat penting bagi perkembangan saya.
+            </p>
+            
+            <div style="text-align: left; max-width: 800px; margin: 0 auto 40px;" class="content-text">
+                <ul class="tech-list">
+                    <li><strong>Saya terbuka untuk dihubungi, terutama mengenai:</strong></li>
+                    <ul class="sub-list">
+                        <li><strong>Feedback Kode:</strong> Saran untuk optimasi kode HTML, CSS, atau logika JavaScript/Three.js yang saya gunakan.</li>
+                        <li><strong>Akurasi Data:</strong> Verifikasi fakta astronomi yang disajikan dalam panel informasi planet.</li>
+                        <li><strong>Ide Pengembangan Fitur:</strong> Diskusi tentang fitur pemrograman atau AI yang dapat ditambahkan di masa depan.</li>
+                    </ul>
+                </ul>
+            </div>
+
+                 <p class="content-text">Email: alitank1607@gmail.com</p>
+                  <p class="content-text">Instagram: @alitanv_</p>
+
+
+            <p></p>
+            <div class="footer-note" font="italic" style="text-align: center;">
+                Terima kasih telah menjelajahi proyek pembelajaran ini!<br>
+                — Alita, dari Bumi.
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('galaxy-scene'), antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        const textureLoader = new THREE.TextureLoader();
+        const planets = [];
+        let time = 0;
+        let moonGroup;
+
+        // DATA LENGKAP
+        const planetData = [
+            { name: "Matahari", size: 3, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/sunmap.jpg', orbitRadius: 0, rotationSpeed: 0.005, orbitSpeed: 0, info: { desc: "Bintang pusat tata surya.", mass: "333.000 x Bumi", diameter: "1.392.000", temp: "5500", orbit: "N/A", rotation: "609" }, isSun: true },
+            { name: "Merkurius", size: 0.3, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/mercurymap.jpg', orbitRadius: 5, rotationSpeed: 0.015, orbitSpeed: 0.02, info: { desc: "Planet terkecil.", mass: "0.055 x Bumi", diameter: "4.880", temp: "167", orbit: "88", rotation: "1408" } },
+            { name: "Venus", size: 0.7, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/venusmap.jpg', orbitRadius: 8, rotationSpeed: 0.01, orbitSpeed: 0.015, info: { desc: "Planet terpanas.", mass: "0.815 x Bumi", diameter: "12.104", temp: "464", orbit: "225", rotation: "5832" } },
+            { name: "Bumi", size: 1, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/earthmap1k.jpg', orbitRadius: 12, rotationSpeed: 0.008, orbitSpeed: 0.01, info: { desc: "Rumah kehidupan.", mass: "1 x Bumi", diameter: "12.742", temp: "15", orbit: "365.25", rotation: "24" } },
+            { name: "Mars", size: 0.5, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/marsmap1k.jpg', orbitRadius: 16, rotationSpeed: 0.007, orbitSpeed: 0.008, info: { desc: "Planet merah.", mass: "0.107 x Bumi", diameter: "6.779", temp: "-63", orbit: "687", rotation: "25" } },
+            { name: "Jupiter", size: 2.5, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/jupitermap.jpg', orbitRadius: 25, rotationSpeed: 0.006, orbitSpeed: 0.005, info: { desc: "Raksasa gas.", mass: "318 x Bumi", diameter: "142.984", temp: "-145", orbit: "4.333", rotation: "10" } },
+            { name: "Saturnus", size: 2, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/saturnmap.jpg', orbitRadius: 35, rotationSpeed: 0.005, orbitSpeed: 0.003, info: { desc: "Planet bercincin.", mass: "95 x Bumi", diameter: "120.536", temp: "-178", orbit: "10.759", rotation: "11" } },
+            { name: "Uranus", size: 1.5, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/uranusmap.jpg', orbitRadius: 45, rotationSpeed: 0.004, orbitSpeed: 0.002, info: { desc: "Raksasa es.", mass: "14.5 x Bumi", diameter: "51.118", temp: "-216", orbit: "30.687", rotation: "17" } },
+            { name: "Neptunus", size: 1.5, texturePath: 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/neptunemap.jpg', orbitRadius: 55, rotationSpeed: 0.003, orbitSpeed: 0.0015, info: { desc: "Planet paling jauh.", mass: "17 x Bumi", diameter: "49.244", temp: "-214", orbit: "60.190", rotation: "16" } }
+        ];
+
+        const moonData = { 
+            name: "Bulan", size: 0.25, isMoon: true,
+            texturePath: 'https://threejs.org/examples/textures/planets/moon_1024.jpg', 
+            orbitRadius: 2, orbitSpeed: 0.005, 
+            info: { desc: "Satelit alami Bumi.", mass: "0.0123 x Bumi", diameter: "3.474", temp: "-173", orbit: "27.3", rotation: "655" }
+        };
+
+        const asteroidBeltInfo = { name: "Sabuk Asteroid", desc: "Wilayah penuh asteroid.", location: "Mars & Jupiter", width: "1.0", origin: "Sisa pembentukan tata surya.", isAsteroidBelt: true };
+
+        // Lingkungan
+        scene.add(new THREE.AmbientLight(0x404040, 0.8));
+        const light = new THREE.PointLight(0xffffff, 100, 500); scene.add(light);
+        const starVertices = []; for(let i=0; i<8000; i++) starVertices.push((Math.random()-0.5)*1500, (Math.random()-0.5)*1500, (Math.random()-0.5)*1500);
+        const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.1})));
+
+        planetData.forEach(data => {
+            const group = new THREE.Group(); group.userData = data;
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(data.size, 64, 64), new THREE.MeshStandardMaterial({ map: textureLoader.load(data.texturePath) }));
+            if(data.isSun) mesh.material = new THREE.MeshBasicMaterial({ map: textureLoader.load(data.texturePath) });
+            group.add(mesh); group.userData.mesh = mesh;
+
+            // Orbit Planet
+            if(!data.isSun) {
+                const orb = new THREE.Mesh(new THREE.RingGeometry(data.orbitRadius-0.05, data.orbitRadius+0.05, 100), new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide }));
+                orb.rotation.x = Math.PI/2; scene.add(orb);
+            }
+
+            if(data.name === "Saturnus") {
+                const ring = new THREE.Mesh(new THREE.RingGeometry(data.size*1.4, data.size*2.6, 64), new THREE.MeshBasicMaterial({ map: textureLoader.load('https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/saturnringmap.jpg'), side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+                ring.rotation.x = Math.PI/2; mesh.add(ring);
+            }
+
+            if(data.name === "Bumi") {
+                moonGroup = new THREE.Group();
+                // Jalur Orbit Bulan
+                const moonOrbitLine = new THREE.Mesh(new THREE.RingGeometry(moonData.orbitRadius-0.02, moonData.orbitRadius+0.02, 64), new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide }));
+                moonOrbitLine.rotation.x = Math.PI/2; moonGroup.add(moonOrbitLine);
+
+                const moonMesh = new THREE.Mesh(new THREE.SphereGeometry(moonData.size, 32, 32), new THREE.MeshStandardMaterial({ map: textureLoader.load(moonData.texturePath) }));
+                moonMesh.position.set(moonData.orbitRadius, 0, 0);
+                moonMesh.userData = moonData; moonGroup.add(moonMesh); group.add(moonGroup);
+            }
+            scene.add(group); planets.push(group);
+        });
+
+        // Sabuk Asteroid
+        const asteroids = new THREE.Group(); asteroids.userData = asteroidBeltInfo;
+        const beltRay = new THREE.Mesh(new THREE.RingGeometry(18, 23, 64), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide }));
+        beltRay.rotation.x = Math.PI/2; beltRay.userData.isRaycastTarget = true; asteroids.add(beltRay);
+        for(let i=0; i<2000; i++) {
+            const ast = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+            const r = 18.5 + Math.random()*4, a = Math.random()*Math.PI*2;
+            ast.position.set(r*Math.cos(a), (Math.random()-0.5)*0.5, r*Math.sin(a)); asteroids.add(ast);
+        }
+        scene.add(asteroids);
+
+        camera.position.set(0, 40, 100);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            planets.forEach(p => {
+                const d = p.userData;
+                if(!d.isSun) { p.position.x = d.orbitRadius*Math.cos(time*d.orbitSpeed); p.position.z = d.orbitRadius*Math.sin(time*d.orbitSpeed); }
+                d.mesh.rotation.y += d.rotationSpeed;
+            });
+            if(moonGroup) moonGroup.rotation.y += moonData.orbitSpeed;
+            asteroids.rotation.y += 0.0005;
+            controls.update(); renderer.render(scene, camera);
+        }
+        animate();
+
+        // Logika Klik
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        window.addEventListener('click', (e) => {
+            if (document.getElementById('planet-info').contains(e.target)) return;
+            mouse.x = (e.clientX/window.innerWidth)*2-1; mouse.y = -(e.clientY/window.innerHeight)*2+1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            if(intersects.length > 0) {
+                let obj = intersects[0].object;
+                while(obj && !obj.userData.name && !obj.userData.isRaycastTarget) obj = obj.parent;
+                if(obj) {
+                    const data = obj.userData.isRaycastTarget ? obj.parent.userData : obj.userData;
+                    showInfo(data, obj);
+                }
+            } else { hidePlanetInfo(); }
+        });
+
+        function showInfo(data, obj) {
+            const panel = document.getElementById('planet-info');
+            document.getElementById('info-title').innerText = data.name;
+            document.getElementById('info-description').innerText = data.info ? data.info.desc : data.desc;
+            
+            if(data.isAsteroidBelt) {
+                document.getElementById('planet-details').style.display = 'none';
+                document.getElementById('asteroid-details').style.display = 'block';
+                document.getElementById('info-location').innerText = data.location;
+                document.getElementById('info-width').innerText = data.width;
+                document.getElementById('info-origin').innerText = data.origin;
+            } else {
+                document.getElementById('planet-details').style.display = 'block';
+                document.getElementById('asteroid-details').style.display = 'none';
+                document.getElementById('info-mass').innerText = data.info.mass;
+                document.getElementById('info-diameter').innerText = data.info.diameter;
+                document.getElementById('info-temp').innerText = data.info.temp;
+                document.getElementById('info-orbit').innerText = data.info.orbit;
+                document.getElementById('info-rotation').innerText = data.info.rotation;
+            }
+            panel.classList.add('visible');
+            const pos = new THREE.Vector3(); obj.getWorldPosition(pos);
+            camera.position.copy(pos).add(new THREE.Vector3(5, 5, 5));
+            controls.target.copy(pos);
+        }
+
+        function hidePlanetInfo() { document.getElementById('planet-info').classList.remove('visible'); controls.target.set(0,0,0); }
+    </script>
+</body>
+</html>
